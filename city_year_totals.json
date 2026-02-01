@@ -1,0 +1,62 @@
+[
+  {
+    "comp_year": 2014,
+    "city_units": 4879,
+    "city_units_cum": 4879
+  },
+  {
+    "comp_year": 2015,
+    "city_units": 7562,
+    "city_units_cum": 12441
+  },
+  {
+    "comp_year": 2016,
+    "city_units": 15015,
+    "city_units_cum": 27456
+  },
+  {
+    "comp_year": 2017,
+    "city_units": 25343,
+    "city_units_cum": 52799
+  },
+  {
+    "comp_year": 2018,
+    "city_units": 33764,
+    "city_units_cum": 86563
+  },
+  {
+    "comp_year": 2019,
+    "city_units": 29408,
+    "city_units_cum": 115971
+  },
+  {
+    "comp_year": 2020,
+    "city_units": 18916,
+    "city_units_cum": 134887
+  },
+  {
+    "comp_year": 2021,
+    "city_units": 20786,
+    "city_units_cum": 155673
+  },
+  {
+    "comp_year": 2022,
+    "city_units": 19919,
+    "city_units_cum": 175592
+  },
+  {
+    "comp_year": 2023,
+    "city_units": 35384,
+    "city_units_cum": 210976
+  },
+  {
+    "comp_year": 2024,
+    "city_units": 49047,
+    "city_units_cum": 260023
+  },
+  {
+    "comp_year": 2025,
+    "city_units": 16734,
+    "city_units_cum": 276757
+  }
+]
