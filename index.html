@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>NYC Affordable Housing since 2014</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.18.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.18.0/mapbox-gl.js"></script>
+
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+        .map-overlay-top {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+            margin: 12px;
+            background-color: rgba(243, 243, 243, 0.9);
+            box-shadow: 2px 2px 1px 2px rgba(216, 216, 216, 0.9);
+            width: 250px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 10px;
+        }
+
+        .map-overlay-top p.credit {
+            font-size: 11.5px;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .map-overlay-top #nta-info {
+            font-size: 16px;
+            margin: 0;
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .map-overlay-top #city-total {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .map-overlay-top .legend-note {
+            font-size: 12px;
+            margin: 0 0 8px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-style: italic;
+        }
+
+        .map-overlay-inner h2 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div class='map-overlay-top'>
+    <div class='map-overlay-inner'>
+      <h2>New York City Affordable Housing Units Since 2014</h2>
+      <table><tr><td>
+        <input id='slider' type='range' min="0" max="11" step="1" value="0" list="tickmarks">
+        <datalist id="tickmarks">
+            <option value="0">2014</option>
+            <option value="1">2015</option>
+            <option value="2">2016</option>
+            <option value="3">2017</option>
+            <option value="4">2018</option>
+            <option value="5">2019</option>
+            <option value="6">2020</option>
+            <option value="7">2021</option>
+            <option value="8">2022</option>
+            <option value="9">2023</option>
+            <option value="10">2024</option>
+            <option value="11">2025</option>
+        </datalist>
+        </td>
+        <td style="padding-left:10px;">
+        <label id="year">2014</label>
+    </td>
+    </tr></table>
+    <h3 id="nta-info">Hover to see NTA name</h3>
+    <p id="city-total">City-wide total since 2014:</p>
+    </div>
+
+    <p class="legend-note">Circle size represents the cumulative number of completed affordable housing units in each NTA</p>
+
+    <p class="credit">Affordable Housing Unit Data: <a href="https://data.cityofnewyork.us/Housing-Development/Affordable-Housing-Production-by-Building/hg8x-zxpr/about_data">NYC Open Data</a>
+        <br>Analysis and Design Performed by: Jacob Echele<br>Data Scale: Neighborhood Tabulation Area (NTA)</p>
+    </div>
+
+<script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiamFjb2JlY2hlbGUiLCJhIjoiY21rbWw5d2tlMGpqZjNjcjJxNGQ4aWIyOCJ9.4MTt2ZvJTS94BZmLwdhQsA';
+
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/jacobechele/cml3x8xys001w01sde6ms82t7',
+        center: [-73.914216, 40.760105],
+        zoom: 11
+    });
+
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    var years = [
+        '2014','2015','2016','2017','2018','2019',
+        '2020','2021','2022','2023','2024','2025'
+    ];
+
+    map.dragRotate.disable();
+    map.touchZoomRotate.disableRotation();
+
+    map.addControl(new mapboxgl.NavigationControl());
+    map.addControl(new mapboxgl.ScaleControl({
+        maxWidth: 80,
+        unit: 'imperial'
+    }));
+
+    map.on('load', function () {
+
+        map.addSource('affordable-housing', {
+            type: 'geojson',
+            data: 'https://raw.githubusercontent.com/jacob-echele/Urban-Data-Visualization/main/nta_year_cum_points.geojson'
+        });
+
+        map.addSource('nta-boundaries', {
+            type: 'geojson',
+            data: 'https://raw.githubusercontent.com/jacob-echele/Urban-Data-Visualization/main/nta_boundaries.geojson'
+        });
+
+        map.addLayer({
+            id: 'nta-boundaries-layer',
+            type: 'line',
+            source: 'nta-boundaries',
+            layout: { visibility: 'visible' },
+            paint: {
+                'line-color': '#000000',
+                'line-width': 1,
+                'line-opacity': 0.23
+            }
+        });
+
+        map.addLayer({
+            id: 'affordable-housing-layer',
+            type: 'circle',
+            source: 'affordable-housing',
+            layout: { visibility: 'visible' },
+            paint: {
+                'circle-opacity': 0.8,
+                'circle-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'units_cum'],
+                    0, 0,
+                    200, 6,
+                    500, 14,
+                    2000, 25,
+                    4000, 32,
+                    8000, 40,
+                    15000, 60
+                ],
+                'circle-color': '#FF5722',
+                'circle-stroke-width': 1,
+                'circle-stroke-color': '#FFFFFF'
+            }
+        });
+
+        map.addLayer({
+            id: 'labels',
+            type: 'symbol',
+            source: 'affordable-housing',
+            filter: ['>', ['get', 'units_cum'], 0],
+            layout: {
+              'text-field': ['to-string', ['get', 'units_cum']],
+              'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+              'text-allow-overlap': true,
+              'text-size': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                8, 3,
+                10, 7,
+                12, 13,
+                14, 25,
+                16, 34
+                ]
+            },
+            paint: {
+              'text-color': '#000000',
+              'text-halo-color': '#FFFFFF',
+              'text-halo-width': 1
+            }
+        });
+
+        map.addLayer({
+            id: 'nta-boundary-highlight',
+            type: 'line',
+            source: 'nta-boundaries',
+            layout: { visibility: 'visible' },
+            paint: {
+                'line-color': '#000000',
+                'line-width': 2,
+                'line-opacity': 0.8
+            },
+            filter: ['==', ['get', 'ntaname'], 'empty']
+        });
+
+        map.addLayer({
+            id: 'nta-boundary-fill',
+            type: 'fill',
+            source: 'nta-boundaries',
+            layout: { visibility: 'visible' },
+            paint: {
+                'fill-color': '#000000',
+                'fill-opacity': 0
+            }
+        });
+
+        var lastNTA = null;
+
+        map.on('mousemove', function(e) {
+            var ntahover = map.queryRenderedFeatures(e.point, {
+                layers: ['nta-boundary-fill']
+            });
+
+            if (ntahover.length > 0) {
+                var currentNTA = ntahover[0].properties.ntaname;
+
+                if (currentNTA !== lastNTA) {
+                    lastNTA = currentNTA;
+                    map.setFilter('nta-boundary-highlight', ['==', ['get', 'ntaname'], currentNTA]);
+                }
+
+                var selectedYear = Number(document.getElementById('year').textContent);
+                
+                var match = map.querySourceFeatures('affordable-housing', {
+                    filter: ['all',
+                        ['==', ['to-number', ['get', 'comp_year']], selectedYear],
+                        ['==', ['get', 'ntaname'], currentNTA]
+                    ]
+                });
+
+                var units = 0;
+                if (match.length > 0) {
+                    units = Number(match[0].properties.units_cum) || 0;
+                }
+
+                document.getElementById('nta-info').innerHTML = 'NTA: ' + currentNTA; 
+
+            } else {
+                lastNTA = null;
+                map.setFilter('nta-boundary-highlight', ['==', ['get', 'ntaname'], 'empty']);
+                document.getElementById('nta-info').innerHTML = 'Hover to see NTA name';
+            }
+        }); 
+
+        function setYear(year) {
+            document.getElementById('year').textContent = years[year];
+            var selectedYear = Number(years[year]);
+
+            map.setFilter('affordable-housing-layer', ['==', ['to-number', ['get', 'comp_year']], selectedYear]);
+            map.setFilter('labels', ['all',
+                ['==', ['to-number', ['get', 'comp_year']], selectedYear],
+                ['>', ['get', 'units_cum'], 0]
+            ]);
+
+            var features = map.querySourceFeatures('affordable-housing', {
+                filter: ['==', ['to-number', ['get', 'comp_year']], selectedYear]
+            });
+
+            if (features.length > 0) {
+                var citytotal = features[0].properties.city_units_cum;
+                document.getElementById('city-total').innerHTML = 'City-wide total since 2014: ' + numberWithCommas(citytotal) + ' units';
+            }
+        }
+
+        setYear(0);
+
+        document.getElementById('slider').addEventListener('input', function(e) {
+            setYear(parseInt(e.target.value));
+        });
+    });
+</script>
+</body>
+</html>
